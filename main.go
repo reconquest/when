@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"syscall"
 	"time"
@@ -22,6 +23,7 @@ Usage:
   when --version
 
 Options:
+  --pre-start <cmd>            Run specified command before starting command.
   --dns <nameserver>           Run when specified DNS server is available.
   --dns-check-domain <domain>  Well-known domain name to check DNS availability.
                                 [default: google.com]
@@ -68,6 +70,18 @@ func main() {
 					i+1, total, condition.address,
 				)
 			}
+		}
+	}
+
+	if preStart, ok := args["--pre-start"].(string); ok {
+		log.Printf("starting pre-start command: %q", preStart)
+		cmd := exec.Command("/bin/sh", "-c", preStart)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 
